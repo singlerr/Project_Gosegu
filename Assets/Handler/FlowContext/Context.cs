@@ -6,5 +6,6 @@ namespace Handler.FlowContext
     {
         public GoseguState GoseguState;
         public StockState StockState;
+        public int SelectedAction;
     }
 }

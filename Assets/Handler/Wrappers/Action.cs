@@ -4,9 +4,7 @@ namespace Handler.Wrappers
 {
     public class Action
     {
-        public string ActionText;
-
         public IActionExecutor ActionExecutor;
-        
+        public string ActionText;
     }
 }

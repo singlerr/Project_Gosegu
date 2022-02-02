@@ -1,13 +1,12 @@
-﻿using Handler.FlowContext;
-using Handler.Pipelines;
-using Handler.Wrappers;
+﻿using System.Collections.ObjectModel;
+using Handler.FlowContext;
 
 namespace Handler.Segments.Action
 {
     public class ActionSegment : Segment
     {
-        public Wrappers.Action ExecutableAction;
-        
+        public Collection<Wrappers.Action> ExecutableActions;
+
         public override SegmentResponse Execute(Context ctx)
         {
             return SegmentResponse.Continue;
