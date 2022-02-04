@@ -4,37 +4,95 @@ using System.IO;
 using System.Text;
 using ScriptEngine.Elements;
 using ScriptEngine.Elements.Nodes;
+using ScriptEngine.Utils;
 
 namespace ScriptEngine.Lexer
 {
     public class ScriptLexer
     {
-        private string[] _lines;
+        private readonly string[] _rawLines;
+
         public ScriptLexer(string[] lines)
         {
-            _lines = lines;
+            _rawLines = lines;
         }
 
         public ScriptLexer(string path)
         {
-            _lines = File.ReadAllLines(path);
+            _rawLines = File.ReadAllLines(path);
         }
 
-        public LineNode[] Lex()
+        public Collection<LineNode> Lex()
         {
-            var parsedLineNodes = new LineNode[_lines.Length];
+            var parsedLineNodes = new Collection<LineNode>();
 
-            for (var lineIdx = 0; lineIdx < _lines.Length; lineIdx++)
+            var lines = Preprocess();
+            for (var lineIdx = 0; lineIdx < lines.Count; lineIdx++)
             {
-                var currentLine = _lines[lineIdx];
-                
+                var currentLine = lines[lineIdx];
+
+                var lineNode = new LineNode(currentLine);
+                var internalNodes = LexInternalNodes(currentLine);
+                foreach (var internalNode in internalNodes) lineNode.InternalNodes.Add(internalNode);
+                parsedLineNodes.Add(lineNode);
             }
-            
+
             return parsedLineNodes;
+        }
+
+        public Collection<string> Preprocess()
+        {
+            return Preprocess(_rawLines);
+        }
+
+        public Collection<string> Preprocess(string[] lines)
+        {
+            var isTail = false;
+            var newLines = new Collection<string>();
+            var headLine = "";
+            for (var i = 0; i < lines.Length; i++)
+            {
+                var currentLine = lines[i].Trim();
+                if (currentLine.StartsWith(NodeType.NewLine.GetExpression()))
+                {
+                    headLine += currentLine.Remove(0, 1);
+                    isTail = true;
+                }
+                else
+                {
+                    if (isTail)
+                    {
+                        newLines.Add(headLine);
+                        headLine = currentLine;
+                        isTail = false;
+                    }
+                    else
+                    {
+                        headLine = currentLine;
+                    }
+                }
+
+                //Last line
+                if (i == lines.Length - 1)
+                {
+                    if (!isTail)
+                    {
+                        headLine = currentLine;
+                        newLines.Add(headLine);
+                    }
+                    else
+                    {
+                        newLines.Add(headLine);
+                    }
+                }
+            }
+
+            return newLines;
         }
 
         public Collection<Node> LexInternalNodes(string line)
         {
+            var bracketCount = new AtomicPositiveInteger();
             var internalNodes = new Collection<Node>();
             var buffer = new StringBuilder();
 
@@ -46,69 +104,117 @@ namespace ScriptEngine.Lexer
 
                 var currentValue = buffer.ToString();
                 //Meet string quote
-                if (NodeType.Quote.GetExpression().Equals(currentValue))
+                if (NodeType.Quote.GetExpression()[0] == currentChar)
                 {
                     //End string quote(current in string)
                     if ((lexerState & LexerState.InString) != 0)
                     {
                         //Remove first "
-                        buffer.Remove(0, 0);
+                        buffer.Remove(0, 1);
                         //Remove last "
-                        buffer.Remove(buffer.Length - 2, buffer.Length - 1);
+                        buffer.Remove(buffer.Length - 1, 1);
 
-                        var stringNode = new ElementNode(NodeType.String, currentValue);
-                        
+                        var stringNode = new ElementNode(NodeType.String, buffer.ToString());
+
                         internalNodes.Add(stringNode);
-                        
                         lexerState &= ~LexerState.InString;
+                        buffer.Clear();
                     }
                     else
                     {
                         //Not in string
                         lexerState |= LexerState.InString;
                     }
-                    continue;
-                }
-                else
-                {
-                    if (char.IsWhiteSpace(currentChar))
-                    {
-                        buffer.Clear();
-                        continue;
-                    }
-                }
-                
-                if (NodeType.StartBracket.GetExpression().Equals(currentValue))
-                {
-                    //Current in bracket
-                    if ((lexerState & LexerState.InBracket) != 0)
-                    {
-                        //Currently start bracket in bracket not supported;
-                        buffer.Clear();
-                        throw new ArgumentOutOfRangeException(nameof(currentValue),"Currently start bracket in bracket is not supported.");
-                    }
-                    else
-                    {
-                        var bracketNode = new ElementNode(NodeType.StartBracket,currentValue);
-                        internalNodes.Add(bracketNode);
-                    }
+
                     continue;
                 }
 
-                if (NodeType.EndBracket.GetExpression().Equals(currentValue))
+                //expression of var
+                if (NodeType.Variable.GetExpression()[0] == currentChar)
+                {
+                    //check if next char is whitespace
+                    var nextChar = charIdx + 1 < line.Length ? line[charIdx + 1] : ' ';
+                    if (char.IsWhiteSpace(nextChar))
+                        throw new ArgumentOutOfRangeException(nameof(currentValue), "Variable name must be declared.");
+
+                    buffer.Remove(buffer.Length - 1, 1);
+                    lexerState |= LexerState.DefVariable;
+                }
+
+                if ((lexerState & LexerState.DefVariable) != 0)
+                {
+                    if (char.IsWhiteSpace(currentChar))
+                    {
+                        //End of variable declaration
+                        buffer.Remove(buffer.Length - 1, 1);
+                        var varNode = new ElementNode(NodeType.Variable, buffer.ToString());
+                        internalNodes.Add(varNode);
+                        lexerState &= ~ LexerState.DefVariable;
+                        buffer.Clear();
+                        continue;
+                    }
+
+                    if (NodeUtils.IsOperator(currentChar))
+                    {
+                        buffer.Remove(buffer.Length - 1, 1);
+                        var varNode = new ElementNode(NodeType.Variable, buffer.ToString());
+                        internalNodes.Add(varNode);
+                        lexerState &= ~ LexerState.DefVariable;
+                        buffer.Clear();
+                        buffer.Append(currentChar);
+                        currentValue = buffer.ToString();
+                    }
+                }
+
+                if ((lexerState & LexerState.InString) != 0)
+                    continue;
+
+                if (char.IsWhiteSpace(currentChar))
+                {
+                    buffer.Remove(buffer.Length - 1, 1);
+                    continue;
+                }
+
+                if (NodeType.StartBracket.GetExpression()[0] == currentChar)
                 {
                     //Current in bracket
-                    if ((lexerState & LexerState.InBracket) != 0)
+                    if ((lexerState & LexerState.InBracket) != 0 || bracketCount.Number > 0)
                     {
-                        var bracketNode = new ElementNode(NodeType.EndBracket,currentValue);
+                        var bracketNode = new ElementNode(NodeType.StartBracket, currentValue);
                         internalNodes.Add(bracketNode);
+                        buffer.Clear();
+                    }
+                    else
+                    {
+                        lexerState |= LexerState.InBracket;
+                        var bracketNode = new ElementNode(NodeType.StartBracket, currentValue);
+                        internalNodes.Add(bracketNode);
+                        buffer.Clear();
+                    }
+
+                    bracketCount.Increment();
+                    continue;
+                }
+
+                if (NodeType.EndBracket.GetExpression()[0] == currentChar)
+                {
+                    //Current in bracket
+                    if ((lexerState & LexerState.InBracket) != 0 || bracketCount.Number > 0)
+                    {
+                        lexerState &= ~LexerState.InBracket;
+                        var bracketNode = new ElementNode(NodeType.EndBracket, currentValue);
+                        internalNodes.Add(bracketNode);
+                        buffer.Clear();
                     }
                     else
                     {
                         //Currently start bracket in bracket not supported;
                         buffer.Clear();
-                        throw new ArgumentOutOfRangeException(nameof(currentValue),"Start bracket must be stated first.");
+                        throw new ArgumentOutOfRangeException(nameof(currentValue),
+                            "Start bracket must be stated first.");
                     }
+
+                    bracketCount.Decrement();
                     continue;
                 }
 
@@ -122,7 +228,6 @@ namespace ScriptEngine.Lexer
                     //If next char is still digit or dot(dot for double value)
                     if (char.IsDigit(nextChar) || NodeType.Dot.GetExpression()[0] == nextChar)
                     {
-                        
                     }
                     else
                     {
@@ -131,7 +236,7 @@ namespace ScriptEngine.Lexer
                         if (currentValue.Contains(NodeType.Dot.GetExpression()))
                         {
                             var doubleNode = new ElementNode(NodeType.Double, currentValue);
-                            internalNodes.Add(doubleNode);       
+                            internalNodes.Add(doubleNode);
                         }
                         else
                         {
@@ -139,9 +244,11 @@ namespace ScriptEngine.Lexer
                             var intNode = new ElementNode(NodeType.Int, currentValue);
                             internalNodes.Add(intNode);
                         }
+
+                        buffer.Clear();
                     }
                 }
-                
+
                 if (NodeType.Dot.GetExpression()[0] == currentChar)
                 {
                     var prevChar = charIdx - 1 >= 0 ? line[charIdx - 1] : ' ';
@@ -154,18 +261,101 @@ namespace ScriptEngine.Lexer
                     }
                 }
 
-                var operators = new string[] {NodeType.Add.GetExpression(),NodeType.Div.GetExpression(),NodeType.Sub.GetExpression(),NodeType.Mul.GetExpression()};
+                var operators = new[] { NodeType.Add, NodeType.Div, NodeType.Sub, NodeType.Mul };
+                var isOkayToContinue = false;
                 foreach (var op in operators)
-                {
-                    if (op.Equals(currentValue))
+                    if (op.GetExpression().Equals(currentValue))
                     {
-                        var opNode = new ElementNode()
+                        var opNode = new ElementNode(op, currentValue);
+                        internalNodes.Add(opNode);
+                        buffer.Clear();
+                        isOkayToContinue = true;
                     }
+
+                if (isOkayToContinue)
+                    continue;
+
+                var condOps = new[]
+                {
+                    NodeType.LeftBig, NodeType.RightBig, NodeType.LeftBigEqual, NodeType.RightBigEqual, NodeType.Equal,
+                    NodeType.NotEqual
+                };
+                isOkayToContinue = false;
+                foreach (var condOp in condOps)
+                    if (condOp.GetExpression().Equals(currentValue))
+                    {
+                        var condOpNode = new ElementNode(condOp, currentValue);
+                        internalNodes.Add(condOpNode);
+                        buffer.Clear();
+                        isOkayToContinue = true;
+                    }
+
+                if (isOkayToContinue)
+                    continue;
+                if (NodeType.Comma.GetExpression()[0] == currentChar)
+                {
+                    var commaNode = new ElementNode(NodeType.Comma, currentValue);
+                    internalNodes.Add(commaNode);
+                    buffer.Clear();
+                    continue;
+                }
+
+                if (NodeType.NameAndVarSeparator.GetExpression().Equals(currentValue))
+                {
+                    var sepNode = new ElementNode(NodeType.NameAndVarSeparator, currentValue);
+                    internalNodes.Add(sepNode);
+                    buffer.Clear();
+                    continue;
+                }
+
+                if (NodeType.If.GetExpression().Equals(currentValue))
+                {
+                    var ifNode = new ConditionNode(currentValue);
+                    internalNodes.Add(ifNode);
+                    buffer.Clear();
+                    continue;
+                }
+
+
+                //Reserved words
+                if (NodeType.UpdateState.GetExpression()
+                    .Equals(currentValue, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var updateNode = new ElementNode(NodeType.UpdateState, currentValue);
+                    internalNodes.Add(updateNode);
+                    buffer.Clear();
+                    continue;
+                }
+
+                if (NodeType.SetVariable.GetExpression()
+                    .Equals(currentValue, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var setNode = new ElementNode(NodeType.SetVariable, currentValue);
+                    internalNodes.Add(setNode);
+                    buffer.Clear();
+                    continue;
+                }
+
+                if (NodeType.Print.GetExpression().Equals(currentValue, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var printNode = new ElementNode(NodeType.Print, currentValue);
+                    internalNodes.Add(printNode);
+                    buffer.Clear();
+                    continue;
+                }
+
+                if (NodeType.ShowActions.GetExpression()
+                    .Equals(currentValue, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var showNode = new ElementNode(NodeType.ShowActions, currentValue);
+                    internalNodes.Add(showNode);
+                    buffer.Clear();
                 }
             }
 
+            if (bracketCount.Number != 0)
+                throw new Exception("{가 있으먄 }가 있어야됩니다.");
             return internalNodes;
         }
-        
     }
 }

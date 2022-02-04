@@ -4,7 +4,6 @@
     {
         public ElementNode(NodeType nodeType, string value) : base(nodeType, value)
         {
-            
         }
     }
 }

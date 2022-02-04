@@ -10,5 +10,10 @@
             NodeType = nodeType;
             Value = value;
         }
+
+        public override string ToString()
+        {
+            return $"({NodeType.ToString()}, {Value})";
+        }
     }
 }

@@ -5,8 +5,9 @@ namespace ScriptEngine.Lexer
     [Flags]
     public enum LexerState
     {
-        InBracket = 2,
-        InString = 1,
+        DefVariable = 1 << 2,
+        InBracket = 1 << 1,
+        InString = 1 << 0,
         None = 0
     }
 }

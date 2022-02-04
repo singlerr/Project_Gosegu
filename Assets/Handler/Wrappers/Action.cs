@@ -1,10 +1,10 @@
-﻿using Handler.Wrappers.Actions;
+﻿using System.Collections.Generic;
+using Handler.Segments;
 
 namespace Handler.Wrappers
 {
-    public class Action
+    public class Action : Wrapper
     {
-        public IActionExecutor ActionExecutor;
-        public string ActionText;
+        public List<Segment> SucceedingSegments;
     }
 }

@@ -1,11 +1,6 @@
-﻿using Handler.FlowContext;
-
-namespace Handler.Segments
+﻿namespace Handler.Segments
 {
-    public abstract class Segment
+    public abstract class Segment : CompiledNode
     {
-        public abstract SegmentResponse Execute(Context ctx);
-
-        public abstract SegmentResponse OnSuspend(Context ctx);
     }
 }

@@ -11,43 +11,44 @@ namespace ScriptEngine.Elements
         String,
         Int,
         Double,
-        [NodeExpression("{")]
-        StartBracket,
-        [NodeExpression("}")]
-        EndBracket,
-        [NodeExpression(",")]
-        Comma,
-        [NodeExpression("+")]
-        Add,
-        [NodeExpression("-")]
-        Sub,
-        [NodeExpression("*")]
-        Mul,
-        [NodeExpression("/")]
-        Div,
-        [NodeExpression("\"")]
-        Quote,
-        [NodeExpression(":")]
-        NameAndVarSeparator,
-        [NodeExpression(".")]
-        Dot,
+        [NodeExpression("{")] StartBracket,
+        [NodeExpression("}")] EndBracket,
+        [NodeExpression(",")] Comma,
+        [NodeExpression("+")] Add,
+        [NodeExpression("-")] Sub,
+        [NodeExpression("*")] Mul,
+        [NodeExpression("/")] Div,
+        [NodeExpression("==")] Equal,
+        [NodeExpression(">")] LeftBig,
+        [NodeExpression("<")] RightBig,
+        [NodeExpression(">=")] LeftBigEqual,
+        [NodeExpression("<=")] RightBigEqual,
+        [NodeExpression("!=")] NotEqual,
+        [NodeExpression("\"")] Quote,
+        [NodeExpression("if")] If,
+        [NodeExpression(":")] NameAndVarSeparator,
+        [NodeExpression(".")] Dot,
+        [NodeExpression("")] Unknown,
+        [NodeExpression("@")] NewLine,
+        [NodeExpression("$")] Variable,
+
         /**
          * Reserved words
          */
-        [NodeExpression("update_state")]
-        UpdateState,
-        [NodeExpression("set_variable")]
-        SetVariable
+        [NodeExpression("update_state")] UpdateState,
+        [NodeExpression("set_variable")] SetVariable,
+        [NodeExpression("print")] Print,
+        [NodeExpression("show_actions")] ShowActions
     }
 
     public class NodeExpression : Attribute
     {
-        public string Expression { get; private set; }
-
         public NodeExpression(string expression)
         {
             Expression = expression;
         }
+
+        public string Expression { get; }
     }
 
     public static class NodeTypeExt
@@ -58,15 +59,7 @@ namespace ScriptEngine.Elements
             var fieldInfo = type.GetField(nodeType.ToString());
 
             var attribs = fieldInfo.GetCustomAttributes(typeof(NodeExpression), false) as NodeExpression[];
-
             return attribs?.Length > 0 ? attribs[0].Expression : null;
-        }
-
-        public static string ValueOf(this NodeType nodeType, string value)
-        {
-            var type = nodeType.GetType();
-            //Value of
-            throw new NotImplementedException();
         }
     }
 }

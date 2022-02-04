@@ -1,10 +1,14 @@
-﻿namespace ScriptEngine.Elements.Nodes
+﻿using System.Collections.ObjectModel;
+
+namespace ScriptEngine.Elements.Nodes
 {
     public class LineNode : Node
     {
-        public Node[] InternalNodes;
-        public LineNode(string line) : base(NodeType.Line,line)
+        public Collection<Node> InternalNodes;
+
+        public LineNode(string line) : base(NodeType.Line, line)
         {
+            InternalNodes = new Collection<Node>();
         }
     }
 }
