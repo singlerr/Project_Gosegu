@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Text;
 using ScriptEngine.Elements;
 using ScriptEngine.Elements.Nodes;
@@ -26,13 +27,86 @@ namespace ScriptEngine.Lexer
         {
             var parsedLineNodes = new Collection<LineNode>();
 
-            var lines = Preprocess();
+            var lines = new Collection<string>(_rawLines);
             for (var lineIdx = 0; lineIdx < lines.Count; lineIdx++)
             {
                 var currentLine = lines[lineIdx];
 
                 var lineNode = new LineNode(currentLine);
                 var internalNodes = LexInternalNodes(currentLine);
+
+                var headNodeType = LineNode.GetHeadNodeType(internalNodes);
+
+                //Add all elements from bound to end if
+                if (headNodeType == NodeType.Else)
+                {
+                    var upperIf =
+                        NodeUtils.FindFirstInBound(parsedLineNodes, parsedLineNodes.Count - 1, NodeType.If, true);
+                    if (upperIf.Item1 == -1) throw new Exception("Found ElseIf but If not found.");
+
+                    var temp = parsedLineNodes.ToList();
+
+                    var startIdx = upperIf.Item1 + 1;
+                    var endIdx = parsedLineNodes.Count - 1;
+
+                    var trueNodes = temp.GetRange(startIdx, endIdx - startIdx + 1);
+
+                    var headNode = (upperIf.Item2 as LineNode).GetHeadNode() as ConditionNode;
+                    //Add nodes to collection that would be executed when condition is true
+                    headNode.TrueLineNodes = new Collection<LineNode>(trueNodes);
+                    temp.RemoveRange(startIdx, endIdx - startIdx + 1);
+                    parsedLineNodes = new Collection<LineNode>(temp);
+                }
+
+                if (headNodeType == NodeType.ElseIf)
+                    throw new NotImplementedException("Currently ElseIf is not supported.");
+                if (headNodeType == NodeType.EndIf)
+                {
+                    var ifUpperNode =
+                        NodeUtils.FindFirstInBound(parsedLineNodes, parsedLineNodes.Count - 1, NodeType.If, true);
+                    var elseNode = NodeUtils.FindFirstInBound(parsedLineNodes, parsedLineNodes.Count - 1, NodeType.Else,
+                        true);
+
+                    if (ifUpperNode.Item1 == -1)
+                        throw new Exception("Expected if but not found.");
+
+                    if (elseNode.Item1 != -1)
+                    {
+                        var temp = parsedLineNodes.ToList();
+
+                        var startIdx = elseNode.Item1 + 1;
+                        var endIdx = parsedLineNodes.Count - 1;
+
+                        var falseNodes = temp.GetRange(startIdx, endIdx - startIdx + 1);
+
+                        var headNode = (ifUpperNode.Item2 as LineNode).GetHeadNode() as ConditionNode;
+
+                        //Add nodes to collection that would be executed when condition is true
+                        headNode.FalseLineNodes = new Collection<LineNode>(falseNodes);
+                        //Remove else sections including 'else'
+                        temp.RemoveRange(startIdx - 1, endIdx - (startIdx - 1) + 1);
+                        parsedLineNodes = new Collection<LineNode>(temp);
+                        continue;
+                    }
+                    else
+                    {
+                        var temp = parsedLineNodes.ToList();
+
+                        var startIdx = ifUpperNode.Item1 + 1;
+                        var endIdx = parsedLineNodes.Count - 1;
+
+                        var trueNodes = temp.GetRange(startIdx, endIdx - startIdx + 1);
+
+                        var headNode = (ifUpperNode.Item2 as LineNode).GetHeadNode() as ConditionNode;
+
+                        //Add nodes to collection that would be executed when condition is true
+                        headNode.FalseLineNodes = new Collection<LineNode>(trueNodes);
+                        temp.RemoveRange(startIdx, endIdx - startIdx + 1);
+                        parsedLineNodes = new Collection<LineNode>(temp);
+                        continue;
+                    }
+                }
+
                 foreach (var internalNode in internalNodes) lineNode.InternalNodes.Add(internalNode);
                 parsedLineNodes.Add(lineNode);
             }
@@ -308,15 +382,31 @@ namespace ScriptEngine.Lexer
                     continue;
                 }
 
-                if (NodeType.If.GetExpression().Equals(currentValue))
+                if (NodeType.If.GetExpression().Equals(currentValue, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var ifNode = new ConditionNode(currentValue);
+                    var ifNode = new ConditionNode(NodeType.If, currentValue);
                     internalNodes.Add(ifNode);
                     buffer.Clear();
                     continue;
                 }
 
+                if (NodeType.Else.GetExpression().Equals(currentValue, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var elseNode = new ElementNode(NodeType.Else, currentValue);
+                    internalNodes.Add(elseNode);
+                    buffer.Clear();
+                    continue;
+                }
 
+                if (NodeType.EndIf.GetExpression().Equals(currentValue, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var endIfNode = new ElementNode(NodeType.EndIf, currentValue);
+                    internalNodes.Add(endIfNode);
+                    buffer.Clear();
+                    continue;
+                }
+
+                //TODO("Else if support ")
                 //Reserved words
                 if (NodeType.UpdateState.GetExpression()
                     .Equals(currentValue, StringComparison.InvariantCultureIgnoreCase))
@@ -344,10 +434,10 @@ namespace ScriptEngine.Lexer
                     continue;
                 }
 
-                if (NodeType.ShowActions.GetExpression()
+                if (NodeType.CreateActionSelector.GetExpression()
                     .Equals(currentValue, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var showNode = new ElementNode(NodeType.ShowActions, currentValue);
+                    var showNode = new ElementNode(NodeType.CreateActionSelector, currentValue);
                     internalNodes.Add(showNode);
                     buffer.Clear();
                 }

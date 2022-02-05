@@ -1,18 +1,19 @@
 ﻿using System.Collections.ObjectModel;
 using Handler.FlowContext;
+using NotImplementedException = System.NotImplementedException;
 
 namespace Handler.Segments.Action
 {
-    public class ActionSelectSegment : Segment
+    public class SegShowActionSelector : Segment
     {
         public override SegmentResponse Execute(Context ctx, Collection<object> args)
         {
-            return new SegmentResponse(null, SegmentResponseType.Continue);
+            throw new NotImplementedException();
         }
 
         public override SegmentResponse OnSuspend(Context ctx)
         {
-            return new SegmentResponse(null, SegmentResponseType.Continue);
+            throw new NotImplementedException();
         }
     }
 }

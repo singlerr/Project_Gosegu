@@ -31,6 +31,9 @@ namespace ScriptEngine.Elements
         [NodeExpression("")] Unknown,
         [NodeExpression("@")] NewLine,
         [NodeExpression("$")] Variable,
+        [NodeExpression("else")] Else,
+        [NodeExpression("endif")] EndIf,
+        [NodeExpression("elseif")] ElseIf,
 
         /**
          * Reserved words
@@ -38,7 +41,14 @@ namespace ScriptEngine.Elements
         [NodeExpression("update_state")] UpdateState,
         [NodeExpression("set_variable")] SetVariable,
         [NodeExpression("print")] Print,
-        [NodeExpression("show_actions")] ShowActions
+
+        [NodeExpression("create_action_selector")]
+        CreateActionSelector,
+        [NodeExpression("create_action")] CreateAction,
+        [NodeExpression("bind_callback")] BindCallback,
+
+        [NodeExpression("show_action_selector")]
+        ShowActionSelector
     }
 
     public class NodeExpression : Attribute
