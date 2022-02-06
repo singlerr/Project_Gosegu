@@ -6,8 +6,6 @@ using ScriptEngine.Elements.Nodes;
 
 namespace Handler.Segments.Primitive
 {
-}
-
 public abstract class CompiledNode
 {
     private Collection<LineNode> _internalNodes;
@@ -30,3 +28,5 @@ public abstract class CompiledNode
     public abstract SegmentResponse Execute(Context ctx, Collection<object> args);
     public abstract SegmentResponse OnSuspend(Context ctx);
 }
+}
+
