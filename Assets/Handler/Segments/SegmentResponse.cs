@@ -1,13 +1,15 @@
-﻿namespace Handler.Segments
+﻿using System.Collections.ObjectModel;
+
+namespace Handler.Segments
 {
     public class SegmentResponse
     {
-        public readonly Segment NextSegment;
+        public readonly Collection<Segment> NextSegments;
         public readonly SegmentResponseType SegmentResponseType;
 
-        public SegmentResponse(Segment nextSegment, SegmentResponseType responseType)
+        public SegmentResponse(Collection<Segment> nextSegment, SegmentResponseType responseType)
         {
-            NextSegment = nextSegment;
+            NextSegments = nextSegment;
             SegmentResponseType = responseType;
         }
     }
