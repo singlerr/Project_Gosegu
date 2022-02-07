@@ -3,6 +3,7 @@ using Handler.FlowContext;
 
 namespace Handler.Segments.Action
 {
+    // 선택지 생성 Segment
     public class SegCreateActionSelector : Segment
     {
         public override SegmentResponse Execute(Context ctx, Collection<object> args)

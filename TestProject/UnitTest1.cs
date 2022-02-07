@@ -7,7 +7,6 @@ public class Tests
     [SetUp]
     public void Setup()
     {
-        ScriptEngine.
     }
 
     [Test]
