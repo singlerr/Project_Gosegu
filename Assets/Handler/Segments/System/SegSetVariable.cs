@@ -8,12 +8,12 @@ namespace Handler.Segments.System
     {
         public override SegmentResponse Execute(Context ctx, Collection<object> args)
         {
-            throw new NotImplementedException();
+            return new SegmentResponse(new Collection<Segment>(), SegmentResponseType.Continue);
         }
 
         public override SegmentResponse OnSuspend(Context ctx)
         {
-            throw new NotImplementedException();
+            return new SegmentResponse(new Collection<Segment>(), SegmentResponseType.Continue);
         }
     }
 }
