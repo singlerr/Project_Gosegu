@@ -10,10 +10,12 @@ public class StartMenuBehaviour : MonoBehaviour
     }
     void Update(){
         if(Input.anyKey){
-            Debug.Log("Mouse Clicked");
-            SceneManager.LoadScene("MainScene");    
+            LoadNextScene();
         }
     }
-    private void OnMouseDown() {
+    private void LoadNextScene(){
+        Scene scene = SceneManager.GetActiveScene();
+        int nextLevelBuildIndex = 1 - scene.buildIndex;
+        SceneManager.LoadScene(nextLevelBuildIndex);
     }
 }
