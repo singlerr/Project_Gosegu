@@ -9,10 +9,12 @@ public class StartMenuBehaviour : MonoBehaviour
         Debug.Log("Game start");
     }
     void Update(){
+        // on press anykey, loads next screne
         if(Input.anyKey){
             LoadNextScene();
         }
     }
+    // Loads next scene in built order.
     private void LoadNextScene(){
         Scene scene = SceneManager.GetActiveScene();
         int nextLevelBuildIndex = 1 - scene.buildIndex;
