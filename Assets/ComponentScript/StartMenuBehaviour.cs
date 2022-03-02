@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+// 시작메뉴 behavior class
 public class StartMenuBehaviour : MonoBehaviour
 {
     void Start(){
