@@ -69,6 +69,7 @@ public class RoomDialogueCanvasHandler : MonoBehaviour
             }
         }
     }
+    // TypeWrtier 효과
     IEnumerator ShowText(string message) {
         for(int i = 0; i < message.Length; i++){
             string currentText = message.Substring(0, i);
