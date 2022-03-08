@@ -11,7 +11,6 @@ public class DialogueHandler
     void start() {
     }
     public void startDialogue(Dialogue dialogue){
-        string firstMessage = dialogue.messages[1];
     }
 
     internal void displayNextMessage()

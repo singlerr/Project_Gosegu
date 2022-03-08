@@ -5,9 +5,9 @@ using UnityEngine;
 public class Dialogue
 {
     public string speaker;
-    public List<string> messages;
-    public Dialogue(string name, List<string> messages){
+    public string message;
+    public Dialogue(string name, string message){
         this.speaker = name;
-        this.messages = messages;
+        this.message = message;
     }
 }

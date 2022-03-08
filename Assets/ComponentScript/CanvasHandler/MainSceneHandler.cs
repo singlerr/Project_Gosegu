@@ -15,12 +15,14 @@ public class MainSceneHandler : MonoBehaviour
     void Start()
     {
         startButton = GameObject.Find("NewGame").GetComponent<Button>(); // game scene
-        loadButton = GameObject.Find("LoadGame").GetComponent<Button>(); // loading scene
-        exitButton = GameObject.Find("ExitGame").GetComponent<Button>(); // exit game
+        loadButton = GameObject.Find("Continue").GetComponent<Button>(); // loading scene
+        exitButton = GameObject.Find("Exit").GetComponent<Button>(); // exit game
+        exitButton.onClick.AddListener(Exitgame);
     }
 
-    // Update is called once per frame
-    void Update()
+    void Exitgame()
     {
+        Debug.Log("Exiting...");
+        Application.Quit();
     }
 }
