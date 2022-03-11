@@ -9,7 +9,6 @@ using TMPro;
 public class RoomDialogueCanvasHandler : MonoBehaviour
 {
     private bool dialogueStarted = false;
-    public DialogueHandler dHandler;
     // dialouges: List of Dialogue / FIFO
     public Queue<Dialogue> dialogues;
     // dialogue: <등장인물, 메시지> 
@@ -29,18 +28,14 @@ public class RoomDialogueCanvasHandler : MonoBehaviour
         // 당장은...
         dialogues = new Queue<Dialogue>();
         // teust seeder
-        Dialogue d1 = new Dialogue("고세구", "안녕");
-        Dialogue d2 = new Dialogue("아이네", "하이");
+        Dialogue d1 = new Dialogue("고세구", "안녕! ");
+        Dialogue d2 = new Dialogue("아이네", "하이네! ");
         dialogues.Enqueue(d1);
         dialogues.Enqueue(d2);
-
-        dHandler = new DialogueHandler();
         
         message = "안녕";
         name = "고세구";
         dialogue = new Dialogue(name, message);
-        dHandler = new DialogueHandler();
-        dHandler.startDialogue(dialogue);
     }
 
     // Update is called once per frame
@@ -50,7 +45,6 @@ public class RoomDialogueCanvasHandler : MonoBehaviour
             if(Input.anyKeyDown){
                 Debug.Log("onpresskey");
                 Debug.Log(dialogue);
-                dHandler.startDialogue(dialogue);
                 dialogueStarted = true;
             }
         } else {
@@ -62,7 +56,7 @@ public class RoomDialogueCanvasHandler : MonoBehaviour
                     string name = currentDialogue.speaker;
                     string message = currentDialogue.message;
                     namebox.text = name;
-                    ShowText(message);
+                    StartCoroutine(ShowText(message));
                 } catch (Exception e){
                     // end dialogue 
                 }
@@ -71,9 +65,10 @@ public class RoomDialogueCanvasHandler : MonoBehaviour
     }
     // TypeWrtier 효과
     IEnumerator ShowText(string message) {
+        messagebox= GameObject.Find("Dialogue").GetComponent<Text>();
         for(int i = 0; i < message.Length; i++){
             string currentText = message.Substring(0, i);
-            GameObject.Find("Dialogue").GetComponent<Text>().text = currentText;
+            messagebox.text = currentText;
             yield return new WaitForSeconds(0.1f);
         }
     }
