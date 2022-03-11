@@ -11,7 +11,7 @@ public class RoomDialogueCanvasHandler : MonoBehaviour
     private bool dialogueStarted = false;
     // dialouges: List of Dialogue / FIFO
     public Queue<Dialogue> dialogues;
-    // dialogue: <등장인물, 메시지> 
+    // dialogue: <등장인물, 메시지> -> <지속시간 캐릭터별img 배경화면 사운드 인물 대사>: Script의 row를 반영합니다.
     public Dialogue dialogue;
     public string message;
     public Text namebox;
@@ -22,10 +22,9 @@ public class RoomDialogueCanvasHandler : MonoBehaviour
     {
         namebox = GameObject.Find("Name").GetComponent<Text>();
         messagebox= GameObject.Find("Dialogue").GetComponent<Text>();
-        // query list of (speaker): (message) into Array
-        // n = getDialogues(script);
-        // dialogues = new Dialogue[n];
-        // 당장은...
+
+        // TODO: Dialogue Script를 List<Row: Dialogue>로 Parse한 후 dialogues로 Enqueue할 예정입니다.
+
         dialogues = new Queue<Dialogue>();
         // teust seeder
         Dialogue d1 = new Dialogue("고세구", "안녕! ");
@@ -58,7 +57,7 @@ public class RoomDialogueCanvasHandler : MonoBehaviour
                     namebox.text = name;
                     StartCoroutine(ShowText(message));
                 } catch (Exception e){
-                    // end dialogue 
+                    // TODO: end dialogue 다음 Scene 처리 
                 }
             }
         }

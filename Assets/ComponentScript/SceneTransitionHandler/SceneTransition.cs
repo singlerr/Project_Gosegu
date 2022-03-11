@@ -5,6 +5,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
+// This file is to be deprecated.
 [Serializable]
 public class AnimationHandler : MonoBehaviour
 {
