@@ -1,43 +1,36 @@
 ﻿using System;
-using System.Data;
-using System.Data.Odbc;
+using System.Collections.Generic;
 using System.IO;
-using JetBrains.Annotations;
-using ScriptEngine.Database;
-using UnityEngine;
+using ComponentScript.DialogueHandler;
 
 namespace ScriptEngine
 {
     public class NovelDataService
     {
-        [NotNull]
-        private OdbcConnection _connection;
+        private Dictionary<string, DialogueContainer> _containers;
+        private readonly string _csvParentPath;
 
-        private NovelDataService(string csvParentPath)
+        public NovelDataService(string csvParentPath)
         {
             if (!Directory.Exists(csvParentPath))
                 throw new Exception($"{csvParentPath} does not exists.");
 
             if (Directory.GetFiles(csvParentPath).Length == 0)
                 throw new Exception($"No csv files found in {csvParentPath}");
-            
-            _connection = new OdbcConnection("Driver={Microsoft Text Driver (*.txt; *.csv)};" +
-                                                 "Dbq=%s;Extensions=asc,csv,tab,txt;" +
-                                                 "Persist Security Info=False"
-                                                     .Replace("%s",csvParentPath));
+            _csvParentPath = csvParentPath;
         }
 
-        public Query<Dialogue> NewQuery(string csvName)
+        public List<Dialogue> Find(string csvName)
         {
-            return new Query<Dialogue>($"select * from {csvName}" ,new OdbcCommand
-            {
-                Connection = _connection
-            });
+            return _containers[csvName].Dialogues;
         }
-        public static NovelDataService StartConnection(string csvParentPath)
+
+        public async void StartService()
         {
-            return new NovelDataService(csvParentPath);
+            var files = Directory.GetFiles(_csvParentPath);
+
+            var reader = new ScriptReader(files);
+            _containers = await reader.Read();
         }
-        
     }
 }

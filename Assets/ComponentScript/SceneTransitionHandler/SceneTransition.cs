@@ -1,7 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using System;
-using System.IO;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,24 +11,26 @@ public class AnimationHandler : MonoBehaviour
     public Image animation_slide;
     public List<Sprite> slide_set;
     public int index = 1;
-    void Start()
+
+    private void Start()
     {
-        
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         animation_slide = GameObject.Find("Canvas").GetComponent<Image>();
-        if(Input.GetKeyDown("space")){
-                try{
-                    Debug.Log(slide_set[index]);
-                    Debug.Log(animation_slide);
-                    animation_slide.sprite = slide_set[index];
-                    index++;
-                } catch (Exception e){
-                    // end of dialogue 
-                }
+        if (Input.GetKeyDown("space"))
+            try
+            {
+                Debug.Log(slide_set[index]);
+                Debug.Log(animation_slide);
+                animation_slide.sprite = slide_set[index];
+                index++;
+            }
+            catch (Exception e)
+            {
+                // end of dialogue 
             }
     }
 }

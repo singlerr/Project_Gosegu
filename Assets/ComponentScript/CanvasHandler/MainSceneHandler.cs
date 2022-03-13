@@ -1,15 +1,14 @@
-using System;
-using System.IO;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MainSceneHandler : MonoBehaviour
 {
     public Button startButton;
     public Button loadButton;
     public Button exitButton;
-    void Start()
+
+    private void Start()
     {
         startButton = GameObject.Find("NewGame").GetComponent<Button>(); // game scene
         loadButton = GameObject.Find("Continue").GetComponent<Button>(); // loading scene
@@ -19,15 +18,17 @@ public class MainSceneHandler : MonoBehaviour
         loadButton.onClick.AddListener(LoadGame);
     }
 
-    void ExitGame()
+    private void ExitGame()
     {
         Application.Quit();
     }
-    void StartGame()
+
+    private void StartGame()
     {
         SceneManager.LoadScene("Day1-loading");
     }
-    void LoadGame()
+
+    private void LoadGame()
     {
         SceneManager.LoadScene("LoadMenu");
     }
