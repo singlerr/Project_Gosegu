@@ -4,7 +4,9 @@ using System.IO;
 using System.Text;
 using ComponentScript.DialogueHandler;
 using CsvHelper;
+using CsvHelper.Configuration;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace ScriptEngine
 {
@@ -23,23 +25,26 @@ namespace ScriptEngine
             for (var i = 0; i < _paths.Length; i++)
             {
                 var currentPath = _paths[i];
+                if(! Path.GetExtension(currentPath).Equals(".csv"))
+                    continue;
                 var name = Path.GetFileNameWithoutExtension(currentPath);
-                using (var streamReader = new StreamReader(currentPath, Encoding.UTF8))
+                using var streamReader = new StreamReader(currentPath, Encoding.UTF8);
+                using var csvReader = new CsvReader(streamReader, new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
-                    using (var csvReader = new CsvReader(streamReader, CultureInfo.InvariantCulture))
-                    {
-                        var records = csvReader.GetRecordsAsync<Dialogue>();
+                    BadDataFound = null,
+                    Encoding = Encoding.UTF8
+                });
+                
+                var records = csvReader.GetRecordsAsync<Dialogue>();
 
-                        var dialogueContainer = new DialogueContainer
-                        {
-                            Dialogues = new List<Dialogue>()
-                        };
+                var dialogueContainer = new DialogueContainer
+                {
+                    Dialogues = new List<Dialogue>()
+                };
+                
+                await foreach (var dialogue in records) dialogueContainer.Dialogues.Add(dialogue);
 
-                        await foreach (var dialogue in records) dialogueContainer.Dialogues.Add(dialogue);
-
-                        dialogues[name] = dialogueContainer;
-                    }
-                }
+                dialogues[name] = dialogueContainer;
             }
 
             return dialogues;
