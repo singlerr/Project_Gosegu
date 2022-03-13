@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using System.IO;
+using ScriptEngine;
+using ScriptEngine.Database;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -17,9 +19,19 @@ public class RoomDialogueCanvasHandler : MonoBehaviour
     public Text namebox;
     public Text messagebox;
     public string name;
+    
+    
+    private NovelDataService _dataService;
+    
+    
+    
     // Start is called before the first frame update
     void Start()
     {
+        if (!Directory.Exists($"{Application.dataPath}/CSVScripts"))
+            Directory.CreateDirectory($"{Application.dataPath}/CSVScripts");
+        _dataService = NovelDataService.StartConnection($"{Application.dataPath}/CSVScripts");
+        var a =  _dataService.NewQuery("csvName").Eq("캐릭터", "고세구").Or().Eq("캐릭터", "뢴트게늄").FindDialoguesOrEmpty();
         namebox = GameObject.Find("Name").GetComponent<Text>();
         messagebox= GameObject.Find("Dialogue").GetComponent<Text>();
 
@@ -35,8 +47,15 @@ public class RoomDialogueCanvasHandler : MonoBehaviour
         message = "안녕";
         name = "고세구";
         dialogue = new Dialogue(name, message);
-    }
 
+        var path = $"{Application.dataPath}/csv";
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(path);
+
+        var service = NovelDataService.StartConnection(path);
+    }       
+
+    
     // Update is called once per frame
     void Update()
     {
