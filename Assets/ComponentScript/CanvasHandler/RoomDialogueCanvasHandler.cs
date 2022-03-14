@@ -5,7 +5,7 @@ using System.IO;
 using ScriptEngine;
 using UnityEngine;
 using UnityEngine.UI;
-
+using static ComponentScript.EnvConstants;
 public class RoomDialogueCanvasHandler : MonoBehaviour
 {
     // dialouges: List of Dialogue / FIFO
@@ -26,10 +26,15 @@ public class RoomDialogueCanvasHandler : MonoBehaviour
     // Start is called before the first frame update
     private void Start()
     {
-        if (!Directory.Exists($"{Application.dataPath}/CSVScripts"))
-            Directory.CreateDirectory($"{Application.dataPath}/CSVScripts");
-        _dataService = new NovelDataService($"{Application.dataPath}/CSVScripts");
+        if (!Directory.Exists(CsvDirectory))
+            Directory.CreateDirectory(CsvDirectory);
+        _dataService = new NovelDataService(CsvDirectory);
         _dataService.StartService();
+
+        if (!Directory.Exists(SceneConfigDirectory))
+            Directory.CreateDirectory(SceneConfigDirectory);
+        
+        
         //    var a =  _dataService.NewQuery("csvName").Eq("캐릭터", "고세구").Or().Eq("캐릭터", "뢴트게늄").FindDialoguesOrEmpty();
 
         namebox = GameObject.Find("Name").GetComponent<Text>();
@@ -48,7 +53,7 @@ public class RoomDialogueCanvasHandler : MonoBehaviour
         name = "고세구";
         dialogue = new Dialogue(name, message);
     }
-
+    
 
     // Update is called once per frame
     private void Update()

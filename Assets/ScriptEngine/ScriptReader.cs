@@ -21,6 +21,7 @@ namespace ScriptEngine
 
         public async UniTask<Dictionary<string, DialogueContainer>> Read()
         {
+            
             var dialogues = new Dictionary<string, DialogueContainer>();
             for (var i = 0; i < _paths.Length; i++)
             {
